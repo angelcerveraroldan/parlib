@@ -103,7 +103,7 @@ impl Parser for ParseIf {
 ///     Ok((String::new(), "x123a 1234".to_string()))
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ParseWhileOrNothing(pub fn(char) -> bool);
 
 impl Parser for ParseWhileOrNothing {
@@ -146,7 +146,7 @@ impl Parser for ParseWhileOrNothing {
 ///     ))
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ParseWhile(pub fn(char) -> bool);
 
 impl Parser for ParseWhile {
