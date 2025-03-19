@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "A barebones parser combinator library, inspired by Haskells parsec"
+repository = "https://github.com/angelcerveraroldan/parlib"
 
 [dependencies]
