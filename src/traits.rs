@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::{
     parsers::{
-        and_p::{AndCombinator, AndThenParser, IdentityAndCombinator},
+        and_p::{AndCombinator, AndThenParser, IdentityAndCombinator, KeepSecondOutputOnly},
         map_p::{MapParser, TryMapParser},
         or_p::OrThenParser,
     },
@@ -63,20 +63,28 @@ where
         OrThenParser::from((self, other))
     }
 
-    fn with_mapping<'a, T>(self, mapping: &'a dyn Fn(Self::Output) -> T) -> MapParser<Self, T> {
+    fn with_mapping<T>(self, mapping: &'_ dyn Fn(Self::Output) -> T) -> MapParser<Self, T> {
         MapParser {
             parser: self,
             mapping,
         }
     }
 
-    fn with_try_mapping<'a, T>(
+    fn with_try_mapping<T>(
         self,
-        try_map: &'a dyn Fn(Self::Output) -> Option<T>,
+        try_map: &'_ dyn Fn(Self::Output) -> Option<T>,
     ) -> TryMapParser<Self, T> {
         TryMapParser {
             parser: self,
             try_map,
         }
+    }
+
+    /// Preceed this parser with another parser
+    fn preceed<P>(self, other: P) -> AndThenParser<P, Self, KeepSecondOutputOnly>
+    where
+        P: Parser,
+    {
+        AndThenParser::from((other, self, KeepSecondOutputOnly))
     }
 }

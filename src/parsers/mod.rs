@@ -11,8 +11,8 @@ use crate::{errors::ParsingError, traits::Parser, type_alias::ParserRes};
 /// # Example
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseMatch;
-/// use mini_parc::traits::Parser;
+/// use parlib::parsers::ParseMatch;
+/// use parlib::traits::Parser;
 ///
 /// let parse_if = ParseMatch("if");
 /// let answer = parse_if.parse("if and");
@@ -51,8 +51,8 @@ where
 /// Parse the first character if it is a numberical character
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseIf;
-/// use mini_parc::traits::Parser;
+/// use parlib::parsers::ParseIf;
+/// use parlib::traits::Parser;
 ///
 /// let parse_if = ParseIf(|c| c.is_numeric());
 /// let answer = parse_if.parse("12hello");
@@ -80,8 +80,8 @@ impl Parser for ParseIf {
 /// # Example
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseWhileOrNothing;
-/// use mini_parc::traits::Parser;
+/// use parlib::parsers::ParseWhileOrNothing;
+/// use parlib::traits::Parser;
 ///
 /// let parse_numbers = ParseWhileOrNothing(|c| c.is_numeric());
 /// let answer_valid = parse_numbers.parse("123a 1234");
@@ -92,9 +92,9 @@ impl Parser for ParseIf {
 /// met the predicate `is_numeric`
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseWhileOrNothing;
-/// use mini_parc::traits::Parser;
-/// use mini_parc::errors::ParsingError;
+/// use parlib::parsers::ParseWhileOrNothing;
+/// use parlib::traits::Parser;
+/// use parlib::errors::ParsingError;
 ///
 /// let parse_numbers = ParseWhileOrNothing(|c| c.is_numeric());
 /// let answer_bad = parse_numbers.parse("x123a 1234");
@@ -104,9 +104,14 @@ impl Parser for ParseIf {
 /// );
 /// ```
 #[derive(Debug, Clone, Copy)]
-pub struct ParseWhileOrNothing(pub fn(char) -> bool);
+pub struct ParseWhileOrNothing<F>(pub F)
+where
+    F: Fn(char) -> bool;
 
-impl Parser for ParseWhileOrNothing {
+impl<F> Parser for ParseWhileOrNothing<F>
+where
+    F: Fn(char) -> bool,
+{
     type Output = String;
     fn parse(&self, input: &str) -> ParserRes<Self::Output> {
         let taken = input.chars().take_while(|&x| self.0(x)).collect::<String>();
@@ -121,8 +126,8 @@ impl Parser for ParseWhileOrNothing {
 /// # Example
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseWhile;
-/// use mini_parc::traits::Parser;
+/// use parlib::parsers::ParseWhile;
+/// use parlib::traits::Parser;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
 /// let answer_valid = parse_numbers.parse("123a 1234");
@@ -133,9 +138,9 @@ impl Parser for ParseWhileOrNothing {
 /// met the predicate `is_numeric`
 ///
 /// ```rust
-/// use mini_parc::parsers::ParseWhile;
-/// use mini_parc::traits::Parser;
-/// use mini_parc::errors::ParsingError;
+/// use parlib::parsers::ParseWhile;
+/// use parlib::traits::Parser;
+/// use parlib::errors::ParsingError;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
 /// let answer_bad = parse_numbers.parse("x123a 1234");
@@ -147,9 +152,14 @@ impl Parser for ParseWhileOrNothing {
 /// );
 /// ```
 #[derive(Debug, Clone, Copy)]
-pub struct ParseWhile(pub fn(char) -> bool);
+pub struct ParseWhile<F>(pub F)
+where
+    F: Fn(char) -> bool;
 
-impl Parser for ParseWhile {
+impl<F> Parser for ParseWhile<F>
+where
+    F: Fn(char) -> bool,
+{
     type Output = String;
     fn parse(&self, input: &str) -> ParserRes<Self::Output> {
         let taken = input.chars().take_while(|&x| self.0(x)).collect::<String>();

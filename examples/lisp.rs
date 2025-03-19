@@ -3,7 +3,7 @@ use std::{
     io::{stdin, stdout, Write},
 };
 
-use mini_parc::{
+use parlib::{
     parsers::{
         and_p::{KeepFirstOutputOnly, KeepSecondOutputOnly},
         string_p::string_parser,
@@ -84,7 +84,7 @@ struct CompoundParser;
 impl Parser for CompoundParser {
     type Output = Expression;
     //  ( [a-z]+ <expression>* )
-    fn parse(&self, input: &str) -> mini_parc::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
         let ob = ParseMatch("(");
         let cb = ParseMatch(")");
         let ws = ParseWhileOrNothing(|x| [' ', '\t'].contains(&x));

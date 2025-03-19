@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 use crate::{traits::Parser, type_alias::ParserRes};
 
+use super::{ParseMatch, ParseWhileOrNothing};
+
 /// A parser that consists of first running some parser A, then some parser B.
 ///
 /// If either of the parsers give an error, that error will be returned. If they

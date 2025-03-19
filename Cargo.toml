@@ -1,5 +1,5 @@
 [package]
-name = "mini_parc"
+name = "parlib"
 version = "0.1.0"
 edition = "2021"
 

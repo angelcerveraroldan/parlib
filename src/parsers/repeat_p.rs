@@ -1,10 +1,39 @@
 use crate::{errors::ParsingError, traits::Parser};
 
-pub struct RepeatParser<P>(P);
+/// Run the same parser repeatedly
+///
+/// Optionally, you can set a range. The minimum number of times the parser must
+/// be run, and the limit.
+pub struct RepeatParser<P>
+where
+    P: Parser,
+{
+    parser: P,
+    lower_bound: usize,
+    upper_bound: Option<usize>,
+}
 
-impl<P> RepeatParser<P> {
+impl<P> RepeatParser<P>
+where
+    P: Parser,
+{
+    /// By default, the parser must run *at least* 1 time, with no maximum
     pub fn new(p: P) -> Self {
-        Self(p)
+        Self {
+            parser: p,
+            lower_bound: 1,
+            upper_bound: None,
+        }
+    }
+
+    pub fn minm(mut self, l: usize) -> Self {
+        self.lower_bound = l;
+        self
+    }
+
+    pub fn maxm(mut self, l: usize) -> Self {
+        self.upper_bound = Some(l);
+        self
     }
 }
 
@@ -17,7 +46,13 @@ where
         let mut rest = input.to_string();
         let mut acc = vec![];
         loop {
-            let Ok((p, r)) = self.0.parse(&rest) else {
+            if let Some(limit) = self.upper_bound {
+                if acc.len() >= limit {
+                    break;
+                }
+            }
+
+            let Ok((p, r)) = self.parser.parse(&rest) else {
                 break;
             };
 
@@ -25,13 +60,13 @@ where
             acc.push(p);
         }
 
-        if acc.is_empty() {
+        if acc.len() < self.lower_bound {
             return Err(ParsingError::PatternNotFound(
-                "Did not match parser any times".to_string(),
+                "Parser did not run the minum number of times".to_string(),
             ));
         }
 
-        Ok((acc, String::new()))
+        Ok((acc, rest))
     }
 }
 
@@ -47,7 +82,7 @@ mod parse_many_t {
         let sp = ParseWhile(|c| c.is_alphabetic());
         let wp = ParseWhileOrNothing(|c| c.is_whitespace());
         let swp = wp.and_then(sp).combine(KeepSecondOutputOnly);
-        let many_string_p = super::RepeatParser(swp);
+        let many_string_p = super::RepeatParser::new(swp);
 
         let (acc, rest) = many_string_p.parse("hello there this is a text").unwrap();
         let exp = "hello there this is a text".split(' ').collect::<Vec<_>>();
@@ -59,5 +94,18 @@ mod parse_many_t {
         assert!(rest.is_empty());
 
         assert!(many_string_p.parse("").is_err())
+    }
+
+    #[test]
+    fn parse_many_with_limit() {
+        let sp = ParseWhile(|c| c.is_alphabetic());
+        let wp = ParseWhileOrNothing(|c| c.is_whitespace());
+        let swp = wp.and_then(sp).combine(KeepSecondOutputOnly);
+        let many_string_p = super::RepeatParser::new(swp).maxm(2);
+
+        let (acc, rest) = many_string_p.parse("hello there this is a text").unwrap();
+        let exp = "hello there".split(' ').collect::<Vec<_>>();
+        assert_eq!(acc, exp);
+        assert_eq!(rest, " this is a text".to_string());
     }
 }

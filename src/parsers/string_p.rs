@@ -1,6 +1,6 @@
 use crate::traits::Parser;
 
-struct StringParser;
+pub struct StringParser;
 
 impl Parser for StringParser {
     type Output = String;

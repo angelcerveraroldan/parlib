@@ -1,9 +1,10 @@
 use std::{
     collections::HashMap,
     io::{stdin, stdout, Write},
+    process::Output,
 };
 
-use mini_parc::{
+use parlib::{
     parsers::{
         and_p::KeepFirstOutputOnly, string_p::string_parser, ParseMatch, ParseWhile,
         ParseWhileOrNothing,
@@ -48,7 +49,7 @@ fn parse_number() -> impl Parser<Output = Primitives> {
 }
 
 fn parse_string() -> impl Parser<Output = Primitives> {
-    mini_parc::parsers::string_p::string_parser().with_mapping(&|s| Primitives::String(s))
+    parlib::parsers::string_p::string_parser().with_mapping(&|s| Primitives::String(s))
 }
 
 pub fn primitive_parser() -> impl Parser<Output = Primitives> {
@@ -65,7 +66,7 @@ struct ArrayParser;
 
 impl Parser for ArrayParser {
     type Output = Primitives;
-    fn parse(&self, input: &str) -> mini_parc::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
         let whitespace_p = ParseWhileOrNothing(|c| c.is_whitespace());
         let (_, mut inp) = ParseMatch('[').parse(input)?;
         let mut acc = vec![];
@@ -92,7 +93,7 @@ pub struct ObjectParser;
 
 impl Parser for ObjectParser {
     type Output = Primitives;
-    fn parse(&self, input: &str) -> mini_parc::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
         let whitespace_p = ParseWhileOrNothing(|c| c.is_whitespace());
         let (_, mut inp) = ParseMatch('{').parse(input)?;
         let mut map: HashMap<String, Primitives> = HashMap::new();
