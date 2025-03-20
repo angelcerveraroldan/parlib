@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
+    inputs::Input,
     parsers::{
         and_p::{AndCombinator, AndThenParser, IdentityAndCombinator, KeepSecondOutputOnly},
         map_p::{MapParser, TryMapParser},
@@ -25,10 +26,10 @@ where
     /// over.
     ///
     /// If parsing did not suceed, then an error will be returned
-    fn parse(&self, input: &str) -> ParserRes<Self::Output>;
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output>;
 
     /// Parse the output (see parse function), and if sucessful, map the parsed output
-    fn parse_and_then_map<F, MappedOutput>(&self, input: &str, f: F) -> ParserRes<MappedOutput>
+    fn parse_and_then_map<F, MappedOutput>(&self, input: &Input, f: F) -> ParserRes<MappedOutput>
     where
         F: FnOnce(Self::Output) -> MappedOutput,
     {

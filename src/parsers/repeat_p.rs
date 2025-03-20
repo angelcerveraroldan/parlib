@@ -1,4 +1,4 @@
-use crate::{errors::ParsingError, traits::Parser};
+use crate::{errors::ParsingError, inputs::Input, traits::Parser};
 
 /// Run the same parser repeatedly
 ///
@@ -42,8 +42,8 @@ where
     P: Parser,
 {
     type Output = Vec<P::Output>;
-    fn parse(&self, input: &str) -> crate::type_alias::ParserRes<Self::Output> {
-        let mut rest = input.to_string();
+    fn parse(&self, input: &Input) -> crate::type_alias::ParserRes<Self::Output> {
+        let mut rest = input.clone();
         let mut acc = vec![];
         loop {
             if let Some(limit) = self.upper_bound {
@@ -84,16 +84,18 @@ mod parse_many_t {
         let swp = wp.and_then(sp).combine(KeepSecondOutputOnly);
         let many_string_p = super::RepeatParser::new(swp);
 
-        let (acc, rest) = many_string_p.parse("hello there this is a text").unwrap();
+        let (acc, rest) = many_string_p
+            .parse(&"hello there this is a text".into())
+            .unwrap();
         let exp = "hello there this is a text".split(' ').collect::<Vec<_>>();
         assert_eq!(acc, exp);
-        assert!(rest.is_empty());
+        assert!(rest.source.is_empty());
 
-        let (acc, rest) = many_string_p.parse("hello").unwrap();
+        let (acc, rest) = many_string_p.parse(&"hello".into()).unwrap();
         assert_eq!(acc, vec!["hello".to_string()]);
-        assert!(rest.is_empty());
+        assert!(rest.source.is_empty());
 
-        assert!(many_string_p.parse("").is_err())
+        assert!(many_string_p.parse(&"".into()).is_err())
     }
 
     #[test]
@@ -103,9 +105,11 @@ mod parse_many_t {
         let swp = wp.and_then(sp).combine(KeepSecondOutputOnly);
         let many_string_p = super::RepeatParser::new(swp).maxm(2);
 
-        let (acc, rest) = many_string_p.parse("hello there this is a text").unwrap();
+        let (acc, rest) = many_string_p
+            .parse(&"hello there this is a text".into())
+            .unwrap();
         let exp = "hello there".split(' ').collect::<Vec<_>>();
         assert_eq!(acc, exp);
-        assert_eq!(rest, " this is a text".to_string());
+        assert_eq!(rest.source, " this is a text".to_string());
     }
 }

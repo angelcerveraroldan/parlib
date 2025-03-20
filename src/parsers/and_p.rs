@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{traits::Parser, type_alias::ParserRes};
+use crate::{inputs::Input, traits::Parser, type_alias::ParserRes};
 
 use super::{ParseMatch, ParseWhileOrNothing};
 
@@ -123,7 +123,7 @@ where
     C::Combined: Debug,
 {
     type Output = C::Combined;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
         let (a, rest) = A::parse(&self.first_parse, input)?;
         let (b, rest) = B::parse(&self.second_parse, &rest)?;
         Ok((C::combine(&self.combinator, (a, b)), rest))
