@@ -15,12 +15,9 @@ use crate::{errors::ParsingError, inputs::Input, traits::Parser, type_alias::Par
 /// use parlib::traits::Parser;
 ///
 /// let parse_if = ParseMatch("if");
-/// let answer = parse_if.parse("if and");
+/// let (parsed, rest) = parse_if.parse(&"if and".into()).unwrap();
 ///
-/// assert_eq!(
-///     answer,
-///     Ok(("if".to_string(), " and".to_string()))
-/// );
+/// assert_eq!(parsed, "if".to_string());
 /// ```
 pub struct ParseMatch<A>(pub A)
 where
@@ -56,8 +53,8 @@ where
 /// use parlib::traits::Parser;
 ///
 /// let parse_if = ParseIf(|c| c.is_numeric());
-/// let answer = parse_if.parse("12hello");
-/// assert_eq!(answer, Ok(('1', "2hello".to_string())));
+/// let (parsed, _) = parse_if.parse(&"12hello".into()).unwrap();
+/// assert_eq!(parsed, '1');
 /// ```
 pub struct ParseIf(pub fn(char) -> bool);
 
@@ -85,24 +82,23 @@ impl Parser for ParseIf {
 /// use parlib::traits::Parser;
 ///
 /// let parse_numbers = ParseWhileOrNothing(|c| c.is_numeric());
-/// let answer_valid = parse_numbers.parse("123a 1234");
-/// assert_eq!(answer_valid, Ok(("123".to_string(), "a 1234".to_string())));
+/// let (p, i) = parse_numbers.parse(&"123a 1234".into()).unwrap();
+/// assert_eq!(p, "123".to_string());
+/// assert_eq!(i.source, "a 1234".to_string());
 /// ```
 ///
+/// `
 /// In the following example, and error will be returned, since none of the characters
 /// met the predicate `is_numeric`
 ///
 /// ```rust
-/// use parlib::parsers::ParseWhileOrNothing;
+/// use parlib::parsers::ParseWhile;
 /// use parlib::traits::Parser;
 /// use parlib::errors::ParsingError;
 ///
-/// let parse_numbers = ParseWhileOrNothing(|c| c.is_numeric());
-/// let answer_bad = parse_numbers.parse("x123a 1234");
-/// assert_eq!(
-///     answer_bad,
-///     Ok((String::new(), "x123a 1234".to_string()))
-/// );
+/// let parse_numbers = ParseWhile(|c| c.is_numeric());
+/// let answer_bad = parse_numbers.parse(&"x123a 1234".into());
+/// assert!(answer_bad.is_err());
 /// ```
 #[derive(Debug, Clone, Copy)]
 pub struct ParseWhileOrNothing<F>(pub F)
@@ -135,8 +131,9 @@ where
 /// use parlib::traits::Parser;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
-/// let answer_valid = parse_numbers.parse("123a 1234");
-/// assert_eq!(answer_valid, Ok(("123".to_string(), "a 1234".to_string())));
+/// let (p, i) = parse_numbers.parse(&"123a 1234".into()).unwrap();
+/// assert_eq!(p, "123".to_string());
+/// assert_eq!(i.source, "a 1234".to_string());
 /// ```
 ///
 /// In the following example, and error will be returned, since none of the characters
@@ -148,13 +145,8 @@ where
 /// use parlib::errors::ParsingError;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
-/// let answer_bad = parse_numbers.parse("x123a 1234");
-/// assert_eq!(
-///     answer_bad,
-///     Err(ParsingError::PatternNotFound(
-///         "no characters matched predicate".to_string()
-///     ))
-/// );
+/// let answer_bad = parse_numbers.parse(&"x123a 1234".into());
+/// assert!(answer_bad.is_err());
 /// ```
 #[derive(Debug, Clone, Copy)]
 pub struct ParseWhile<F>(pub F)

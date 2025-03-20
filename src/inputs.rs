@@ -11,9 +11,19 @@ impl Input {
     }
 
     pub fn char_offset(mut self, count: usize) -> Self {
-        self.line += count;
-        self.source = self.source.drain(..count).collect();
+        self.col += count;
+        self.source = self.source.chars().skip(count).collect();
         self
+    }
+}
+
+impl Into<Input> for String {
+    fn into(self) -> Input {
+        Input {
+            line: 0,
+            col: 0,
+            source: self,
+        }
     }
 }
 
@@ -31,6 +41,7 @@ impl Into<Input> for &str {
 mod test_input {
     use super::Input;
 
+    #[test]
     fn test_offset() {
         let input = Input::new(3, 12, "hello there!".to_string());
         let input = input.char_offset(4);

@@ -4,6 +4,7 @@ use std::{
 };
 
 use parlib::{
+    inputs::Input,
     parsers::{
         and_p::{KeepFirstOutputOnly, KeepSecondOutputOnly},
         string_p::string_parser,
@@ -84,7 +85,7 @@ struct CompoundParser;
 impl Parser for CompoundParser {
     type Output = Expression;
     //  ( [a-z]+ <expression>* )
-    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> parlib::type_alias::ParserRes<Self::Output> {
         let ob = ParseMatch("(");
         let cb = ParseMatch(")");
         let ws = ParseWhileOrNothing(|x| [' ', '\t'].contains(&x));
@@ -133,6 +134,6 @@ fn main() {
             break;
         }
 
-        println!("{:?}", par.parse(&buffer));
+        println!("{:?}", par.parse(&buffer.into()));
     }
 }

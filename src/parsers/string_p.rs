@@ -9,6 +9,7 @@ impl Parser for StringParser {
     fn parse(&self, input: &Input) -> crate::type_alias::ParserRes<Self::Output> {
         // First, we will make sure that the first character is "
         let (_, rest) = ParseMatch('"').parse(input)?;
+
         let mut acc = 1;
         let mut chars = rest.source.chars().peekable();
         loop {
@@ -19,7 +20,7 @@ impl Parser for StringParser {
                 }
                 Some('\\') => {
                     let _ = chars.next().unwrap();
-                    acc += 2;
+                    acc += 1;
                 }
                 Some(_) => acc += 1,
                 None => {
@@ -31,7 +32,8 @@ impl Parser for StringParser {
         }
 
         Ok((
-            input.source.chars().take(acc).collect(),
+            // Do not include the '"' as part of the string
+            input.source.chars().skip(1).take(acc - 2).collect(),
             input.clone().char_offset(acc),
         ))
     }
@@ -54,6 +56,6 @@ mod string_parser_test {
             .unwrap();
         assert_eq!(p, "This is some string".to_string());
         assert_eq!(inp.source, " and this is the rest".to_string());
-        assert_eq!(inp.col, 23);
+        assert_eq!(inp.col, 21);
     }
 }

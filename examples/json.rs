@@ -1,10 +1,10 @@
 use std::{
     collections::HashMap,
     io::{stdin, stdout, Write},
-    process::Output,
 };
 
 use parlib::{
+    inputs::Input,
     parsers::{
         and_p::KeepFirstOutputOnly, string_p::string_parser, ParseMatch, ParseWhile,
         ParseWhileOrNothing,
@@ -66,7 +66,7 @@ struct ArrayParser;
 
 impl Parser for ArrayParser {
     type Output = Primitives;
-    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> parlib::type_alias::ParserRes<Self::Output> {
         let whitespace_p = ParseWhileOrNothing(|c| c.is_whitespace());
         let (_, mut inp) = ParseMatch('[').parse(input)?;
         let mut acc = vec![];
@@ -93,7 +93,7 @@ pub struct ObjectParser;
 
 impl Parser for ObjectParser {
     type Output = Primitives;
-    fn parse(&self, input: &str) -> parlib::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> parlib::type_alias::ParserRes<Self::Output> {
         let whitespace_p = ParseWhileOrNothing(|c| c.is_whitespace());
         let (_, mut inp) = ParseMatch('{').parse(input)?;
         let mut map: HashMap<String, Primitives> = HashMap::new();
@@ -132,5 +132,5 @@ fn main() {
         .read_line(&mut buffer)
         .expect("Error reading user input");
     let par = primitive_parser();
-    println!("{:?}", par.parse(&buffer));
+    println!("{:?}", par.parse(&buffer.into()));
 }
