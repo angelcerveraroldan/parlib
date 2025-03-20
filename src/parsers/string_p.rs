@@ -1,29 +1,27 @@
-use crate::traits::Parser;
+use crate::{inputs::Input, traits::Parser};
+
+use super::{ParseMatch, ParseWhile};
 
 pub struct StringParser;
 
 impl Parser for StringParser {
     type Output = String;
-    fn parse(&self, input: &str) -> crate::type_alias::ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> crate::type_alias::ParserRes<Self::Output> {
         // First, we will make sure that the first character is "
-        let mut chars = input.chars().peekable();
-        let mut acc = String::new();
-
-        if chars.next() != Some('"') {
-            return Err(crate::errors::ParsingError::PatternNotFound(
-                "String must start with \"".to_string(),
-            ));
-        }
-
+        let (_, rest) = ParseMatch('"').parse(input)?;
+        let mut acc = 1;
+        let mut chars = rest.source.chars().peekable();
         loop {
             match chars.next() {
-                Some('"') => break,
-                Some('\\') => {
-                    let char_after = chars.next().unwrap();
-                    acc.push('\\');
-                    acc.push(char_after);
+                Some('"') => {
+                    acc += 1;
+                    break;
                 }
-                Some(c) => acc.push(c),
+                Some('\\') => {
+                    let _ = chars.next().unwrap();
+                    acc += 2;
+                }
+                Some(_) => acc += 1,
                 None => {
                     return Err(crate::errors::ParsingError::PatternNotFound(
                         "Did not find closing quote \"".to_string(),
@@ -32,7 +30,10 @@ impl Parser for StringParser {
             };
         }
 
-        Ok((acc, chars.collect()))
+        Ok((
+            input.source.chars().take(acc).collect(),
+            input.clone().char_offset(acc),
+        ))
     }
 }
 
@@ -48,13 +49,11 @@ mod string_parser_test {
     #[test]
     fn string_parser_test() {
         let sp = string_parser();
-        let x = sp.parse("\"This is some string\" and this is the rest");
-        assert_eq!(
-            x,
-            Ok((
-                "This is some string".to_string(),
-                " and this is the rest".to_string()
-            ))
-        );
+        let (p, inp) = sp
+            .parse(&"\"This is some string\" and this is the rest".into())
+            .unwrap();
+        assert_eq!(p, "This is some string".to_string());
+        assert_eq!(inp.source, " and this is the rest".to_string());
+        assert_eq!(inp.col, 23);
     }
 }

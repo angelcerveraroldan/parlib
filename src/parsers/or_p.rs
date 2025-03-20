@@ -31,13 +31,13 @@ where
     CommonOut: Debug,
 {
     type Output = CommonOut;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
-        let aparse = self.first_parse.parse(input);
+    fn parse(&self, input: &crate::inputs::Input) -> ParserRes<Self::Output> {
+        let aparse = self.first_parse.parse(&input);
         if aparse.is_ok() {
             return aparse;
         }
 
-        let bparse = self.second_parse.parse(input);
+        let bparse = self.second_parse.parse(&input);
         if bparse.is_ok() {
             return bparse;
         };

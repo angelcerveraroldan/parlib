@@ -1,3 +1,3 @@
-use crate::errors::ParsingError;
+use crate::{errors::ParsingError, inputs::Input};
 
-pub type ParserRes<A, E = ParsingError> = std::result::Result<(A, String), E>;
+pub type ParserRes<A, E = ParsingError> = std::result::Result<(A, Input), E>;

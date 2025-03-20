@@ -4,7 +4,7 @@ pub mod or_p;
 pub mod repeat_p;
 pub mod string_p;
 
-use crate::{errors::ParsingError, traits::Parser, type_alias::ParserRes};
+use crate::{errors::ParsingError, inputs::Input, traits::Parser, type_alias::ParserRes};
 
 /// A parser that will parse an exact input string
 ///
@@ -31,15 +31,16 @@ where
     A: Into<String> + Clone,
 {
     type Output = String;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
         let match_str: String = self.0.clone().into();
-        if !input.starts_with(&match_str) {
+        if !input.source.starts_with(&match_str) {
             return Err(ParsingError::PatternNotFound(format!(
                 "{} did not match pattern: {}",
-                input, match_str
+                input.source, match_str
             )));
         }
-        let rest = input.chars().skip(match_str.len()).collect();
+
+        let rest = input.clone().char_offset(match_str.len());
         Ok((match_str, rest))
     }
 }
@@ -62,10 +63,10 @@ pub struct ParseIf(pub fn(char) -> bool);
 
 impl Parser for ParseIf {
     type Output = char;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
-        let maybe_first_char = input.chars().next();
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
+        let maybe_first_char = input.source.chars().next();
         if let Some(true) = maybe_first_char.map(self.0) {
-            return Ok((maybe_first_char.unwrap(), input.chars().skip(1).collect()));
+            return Ok((maybe_first_char.unwrap(), input.clone().char_offset(1)));
         }
         Err(ParsingError::PatternNotFound(
             "if predicate not met".to_string(),
@@ -113,10 +114,14 @@ where
     F: Fn(char) -> bool,
 {
     type Output = String;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
-        let taken = input.chars().take_while(|&x| self.0(x)).collect::<String>();
-        let rest = input.chars().skip_while(|&x| self.0(x)).collect::<String>();
-        Ok((taken, rest))
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
+        let taken = input
+            .source
+            .chars()
+            .take_while(|&x| self.0(x))
+            .collect::<String>();
+        let len = taken.len();
+        Ok((taken, input.clone().char_offset(len)))
     }
 }
 /// Keep parsing characters while some predicate is met. If none of the characters
@@ -161,15 +166,15 @@ where
     F: Fn(char) -> bool,
 {
     type Output = String;
-    fn parse(&self, input: &str) -> ParserRes<Self::Output> {
-        let taken = input.chars().take_while(|&x| self.0(x)).collect::<String>();
+    fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
+        let taken: String = input.source.chars().take_while(|&x| self.0(x)).collect();
         if taken.is_empty() {
             return Err(ParsingError::PatternNotFound(
                 "no characters matched predicate".to_string(),
             ));
         }
-        let rest = input.chars().skip_while(|&x| self.0(x)).collect::<String>();
-        Ok((taken, rest))
+        let len = taken.len();
+        Ok((taken, input.clone().char_offset(len)))
     }
 }
 
@@ -181,30 +186,28 @@ mod test_base_parsers {
     #[test]
     fn match_parser() {
         let parse_if = ParseMatch("if");
-        let answer = parse_if.parse("if and");
-        assert_eq!(answer, Ok(("if".to_string(), " and".to_string())));
+        let (p, i) = parse_if.parse(&"if and".into()).unwrap();
+        assert_eq!(p, "if".to_string());
+        assert_eq!(i.source, " and".to_string());
     }
 
     #[test]
     fn if_parser() {
         let parse_if = ParseIf(|c| c.is_numeric());
-        let answer = parse_if.parse("12hello");
-        assert_eq!(answer, Ok(('1', "2hello".to_string())));
+        let (p, i) = parse_if.parse(&"12hello".into()).unwrap();
+        assert_eq!(p, '1');
+        assert_eq!(i.source, "2hello".to_string());
     }
 
     #[test]
     fn parse_while() {
         let parse_numbers = ParseWhile(|c| c.is_numeric());
 
-        let answer_valid = parse_numbers.parse("123a 1234");
-        assert_eq!(answer_valid, Ok(("123".to_string(), "a 1234".to_string())));
+        let (p, i) = parse_numbers.parse(&"123a 1234".into()).unwrap();
+        assert_eq!(p, "123".to_string());
+        assert_eq!(i.source, "a 1234".to_string());
 
-        let answer_bad = parse_numbers.parse("x123a 1234");
-        assert_eq!(
-            answer_bad,
-            Err(crate::errors::ParsingError::PatternNotFound(
-                "no characters matched predicate".to_string()
-            ))
-        );
+        let answer_bad = parse_numbers.parse(&"x123a 1234".into());
+        assert!(answer_bad.is_err());
     }
 }
