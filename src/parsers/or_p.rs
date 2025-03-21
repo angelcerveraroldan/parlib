@@ -45,9 +45,11 @@ where
         if bparse.is_ok() {
             return bparse;
         };
-        let kind = ParsingErrorKind::PatternNotFound(
-            "Or Parser didnt match either of the branches".to_string(),
-        );
-        Err(ParsingError::new(kind, input.line, input.col))
+
+        // Keep the error that made it the furthest
+        // Is this always the right decision ... ?
+        let aerr = aparse.unwrap_err();
+        let berr = bparse.unwrap_err();
+        Err(if berr > aerr { berr } else { aerr })
     }
 }

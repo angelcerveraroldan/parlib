@@ -7,6 +7,24 @@ pub struct ParsingError {
     col: usize,
 }
 
+impl PartialOrd for ParsingError {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if self.line > other.line {
+            Some(std::cmp::Ordering::Greater)
+        } else if self.line < other.line {
+            Some(std::cmp::Ordering::Less)
+        }
+        // Now we know that the line number is the same
+        else if self.col > other.col {
+            Some(std::cmp::Ordering::Greater)
+        } else if self.col < other.col {
+            Some(std::cmp::Ordering::Less)
+        } else {
+            Some(std::cmp::Ordering::Equal)
+        }
+    }
+}
+
 impl ParsingError {
     pub fn new(kind: ParsingErrorKind, line: usize, col: usize) -> Self {
         ParsingError { kind, line, col }
