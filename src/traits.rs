@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
+    errors::ErrorParser,
     inputs::Input,
     parsers::{
         and_p::{AndCombinator, AndThenParser, IdentityAndCombinator, KeepSecondOutputOnly},
@@ -87,5 +88,9 @@ where
         P: Parser,
     {
         AndThenParser::from((other, self, KeepSecondOutputOnly))
+    }
+
+    fn with_error<'a>(self, message: &'a str) -> ErrorParser<'a, Self> {
+        ErrorParser::new(self, message)
     }
 }
