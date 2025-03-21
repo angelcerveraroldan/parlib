@@ -1,9 +1,11 @@
-use crate::{inputs::Input, traits::Parser};
+use crate::{errors::ParsingError, inputs::Input, traits::Parser};
 
 use super::{ParseMatch, ParseWhile};
 
 pub struct StringParser;
 
+// FIXME: Many things are broken here...
+// + Error will report the wrong line and column
 impl Parser for StringParser {
     type Output = String;
     fn parse(&self, input: &Input) -> crate::type_alias::ParserRes<Self::Output> {
@@ -24,9 +26,10 @@ impl Parser for StringParser {
                 }
                 Some(_) => acc += 1,
                 None => {
-                    return Err(crate::errors::ParsingError::PatternNotFound(
+                    let kind = crate::errors::ParsingErrorKind::PatternNotFound(
                         "Did not find closing quote \"".to_string(),
-                    ))
+                    );
+                    return Err(ParsingError::new(kind, rest.line, rest.col));
                 }
             };
         }

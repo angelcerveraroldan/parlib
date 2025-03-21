@@ -4,7 +4,12 @@ pub mod or_p;
 pub mod repeat_p;
 pub mod string_p;
 
-use crate::{errors::ParsingError, inputs::Input, traits::Parser, type_alias::ParserRes};
+use crate::{
+    errors::{ParsingError, ParsingErrorKind},
+    inputs::Input,
+    traits::Parser,
+    type_alias::ParserRes,
+};
 
 /// A parser that will parse an exact input string
 ///
@@ -31,10 +36,11 @@ where
     fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
         let match_str: String = self.0.clone().into();
         if !input.source.starts_with(&match_str) {
-            return Err(ParsingError::PatternNotFound(format!(
+            let kind = ParsingErrorKind::PatternNotFound(format!(
                 "{} did not match pattern: {}",
                 input.source, match_str
-            )));
+            ));
+            return Err(ParsingError::new(kind, input.line, input.col));
         }
 
         let rest = input.clone().char_offset(match_str.len());
@@ -65,9 +71,8 @@ impl Parser for ParseIf {
         if let Some(true) = maybe_first_char.map(self.0) {
             return Ok((maybe_first_char.unwrap(), input.clone().char_offset(1)));
         }
-        Err(ParsingError::PatternNotFound(
-            "if predicate not met".to_string(),
-        ))
+        let kind = ParsingErrorKind::PatternNotFound("if predicate not met".to_string());
+        Err(ParsingError::new(kind, input.line, input.col))
     }
 }
 
@@ -161,9 +166,9 @@ where
     fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
         let taken: String = input.source.chars().take_while(|&x| self.0(x)).collect();
         if taken.is_empty() {
-            return Err(ParsingError::PatternNotFound(
-                "no characters matched predicate".to_string(),
-            ));
+            let kind =
+                ParsingErrorKind::PatternNotFound("no characters matched predicate".to_string());
+            return Err(ParsingError::new(kind, input.line, input.col));
         }
         let len = taken.len();
         Ok((taken, input.clone().char_offset(len)))

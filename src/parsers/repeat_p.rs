@@ -1,4 +1,8 @@
-use crate::{errors::ParsingError, inputs::Input, traits::Parser};
+use crate::{
+    errors::{ParsingError, ParsingErrorKind},
+    inputs::Input,
+    traits::Parser,
+};
 
 /// Run the same parser repeatedly
 ///
@@ -61,9 +65,10 @@ where
         }
 
         if acc.len() < self.lower_bound {
-            return Err(ParsingError::PatternNotFound(
+            let err_kind = ParsingErrorKind::PatternNotFound(
                 "Parser did not run the minum number of times".to_string(),
-            ));
+            );
+            return Err(ParsingError::new(err_kind, rest.line, rest.col));
         }
 
         Ok((acc, rest))

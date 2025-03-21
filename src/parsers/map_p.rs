@@ -1,6 +1,11 @@
 use std::fmt::Debug;
 
-use crate::{errors::ParsingError, inputs::Input, traits::Parser, type_alias::ParserRes};
+use crate::{
+    errors::{ParsingError, ParsingErrorKind},
+    inputs::Input,
+    traits::Parser,
+    type_alias::ParserRes,
+};
 
 /// Given a parser with output of type K, and a mapping K -> Z,
 /// make a new parser with output of type Z
@@ -34,7 +39,12 @@ where
     fn parse(&self, input: &Input) -> ParserRes<Self::Output> {
         let (p, rest) = self.parser.parse(input)?;
         match (self.try_map)(p) {
-            None => Err(ParsingError::MappingError("mapping failed".to_string())),
+            None => {
+                let kind = ParsingErrorKind::MappingError(
+                    "Parsing worked, but mapping failed".to_string(),
+                );
+                Err(ParsingError::new(kind, rest.line, rest.col))
+            }
             Some(mapped_val) => Ok((mapped_val, rest)),
         }
     }

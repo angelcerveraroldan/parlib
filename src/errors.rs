@@ -1,7 +1,20 @@
 use crate::traits::Parser;
 
 #[derive(Debug, PartialEq)]
-pub enum ParsingError {
+pub struct ParsingError {
+    kind: ParsingErrorKind,
+    line: usize,
+    col: usize,
+}
+
+impl ParsingError {
+    pub fn new(kind: ParsingErrorKind, line: usize, col: usize) -> Self {
+        ParsingError { kind, line, col }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ParsingErrorKind {
     PatternNotFound(String),
     CannotParseAnEmptyString,
     MappingError(String),
@@ -34,8 +47,9 @@ where
     type Output = P::Output;
 
     fn parse(&self, input: &crate::inputs::Input) -> crate::type_alias::ParserRes<Self::Output> {
-        self.parser
-            .parse(input)
-            .map_err(|_| ParsingError::CustomError(self.message.to_string()))
+        self.parser.parse(input).map_err(|err| {
+            let kind = ParsingErrorKind::CustomError(self.message.to_string());
+            ParsingError::new(kind, err.line, err.col)
+        })
     }
 }

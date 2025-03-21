@@ -1,6 +1,10 @@
 use std::fmt::Debug;
 
-use crate::{errors::ParsingError, traits::Parser, type_alias::ParserRes};
+use crate::{
+    errors::{ParsingError, ParsingErrorKind},
+    traits::Parser,
+    type_alias::ParserRes,
+};
 
 pub struct OrThenParser<A, B>
 where
@@ -41,9 +45,9 @@ where
         if bparse.is_ok() {
             return bparse;
         };
-
-        Err(ParsingError::PatternNotFound(
+        let kind = ParsingErrorKind::PatternNotFound(
             "Or Parser didnt match either of the branches".to_string(),
-        ))
+        );
+        Err(ParsingError::new(kind, input.line, input.col))
     }
 }
