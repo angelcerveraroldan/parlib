@@ -1,6 +1,10 @@
 use std::fmt::Debug;
 
-use crate::{errors::ParsingError, traits::Parser, type_alias::ParserRes};
+use crate::{
+    errors::{ParsingError, ParsingErrorKind},
+    traits::Parser,
+    type_alias::ParserRes,
+};
 
 pub struct OrThenParser<A, B>
 where
@@ -42,8 +46,36 @@ where
             return bparse;
         };
 
-        Err(ParsingError::PatternNotFound(
-            "Or Parser didnt match either of the branches".to_string(),
-        ))
+        // Keep the error that made it the furthest
+        // Is this always the right decision ... ?
+        let aerr = aparse.unwrap_err();
+        let berr = bparse.unwrap_err();
+        Err(if berr > aerr { berr } else { aerr })
+    }
+}
+
+#[cfg(test)]
+mod test_or_parser {
+    use crate::{
+        parsers::{and_p::KeepFirstOutputOnly, ParseMatch, ParseWhile},
+        traits::Parser,
+    };
+
+    #[test]
+    fn error_kept() {
+        let pa = ParseWhile(|c| c.is_numeric())
+            .and_then(ParseMatch("."))
+            .combine(KeepFirstOutputOnly);
+        let pb = ParseWhile(|c| c.is_numeric())
+            .and_then(ParseMatch(",").and_then(ParseMatch(".")))
+            .combine(KeepFirstOutputOnly);
+
+        let err = pa.otherwise(pb).parse(&"123,".into()).unwrap_err();
+
+        let pb = ParseWhile(|c| c.is_numeric())
+            .and_then(ParseMatch(",").and_then(ParseMatch(".")))
+            .combine(KeepFirstOutputOnly);
+        let pbe = pb.parse(&"123,".into()).unwrap_err();
+        assert_eq!(err, pbe);
     }
 }
