@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    errors::{ParsingError, ParsingErrorKind},
+    errors::{simple_error::ParsingError, ParsingErrorKind},
     inputs::Input,
     traits::Parser,
     type_alias::ParserRes,

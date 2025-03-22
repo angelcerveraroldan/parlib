@@ -1,4 +1,8 @@
-use crate::{errors::ParsingError, inputs::Input, traits::Parser};
+use crate::{
+    errors::{simple_error::ParsingError, ParsingErrorKind},
+    inputs::Input,
+    traits::Parser,
+};
 
 use super::{ParseMatch, ParseWhile};
 
@@ -26,7 +30,7 @@ impl Parser for StringParser {
                 }
                 Some(_) => acc += 1,
                 None => {
-                    let kind = crate::errors::ParsingErrorKind::PatternNotFound(
+                    let kind = ParsingErrorKind::PatternNotFound(
                         "Did not find closing quote \"".to_string(),
                     );
                     return Err(ParsingError::new(kind, rest.line, rest.col));

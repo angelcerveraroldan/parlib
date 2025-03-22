@@ -1,10 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{
-    errors::{ParsingError, ParsingErrorKind},
-    traits::Parser,
-    type_alias::ParserRes,
-};
+use crate::{traits::Parser, type_alias::ParserRes};
 
 pub struct OrThenParser<A, B>
 where

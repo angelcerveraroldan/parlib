@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    errors::ErrorParser,
+    errors::simple_error::ErrorParser,
     inputs::Input,
     parsers::{
         and_p::{AndCombinator, AndThenParser, IdentityAndCombinator, KeepSecondOutputOnly},

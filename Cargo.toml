@@ -7,3 +7,5 @@ description = "A barebones parser combinator library, inspired by Haskells parse
 repository = "https://github.com/angelcerveraroldan/parlib"
 
 [dependencies]
+miette = { version = "7.5.0", features = ["fancy"] }
+thiserror = "2.0.12"

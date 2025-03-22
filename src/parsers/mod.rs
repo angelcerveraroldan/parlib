@@ -5,7 +5,7 @@ pub mod repeat_p;
 pub mod string_p;
 
 use crate::{
-    errors::{ParsingError, ParsingErrorKind},
+    errors::{simple_error::ParsingError, ParsingErrorKind},
     inputs::Input,
     traits::Parser,
     type_alias::ParserRes,
@@ -99,7 +99,7 @@ impl Parser for ParseIf {
 /// ```rust
 /// use parlib::parsers::ParseWhile;
 /// use parlib::traits::Parser;
-/// use parlib::errors::ParsingError;
+/// use parlib::errors::simple_error::ParsingError;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
 /// let answer_bad = parse_numbers.parse(&"x123a 1234".into());
@@ -147,7 +147,7 @@ where
 /// ```rust
 /// use parlib::parsers::ParseWhile;
 /// use parlib::traits::Parser;
-/// use parlib::errors::ParsingError;
+/// use parlib::errors::simple_error::ParsingError;
 ///
 /// let parse_numbers = ParseWhile(|c| c.is_numeric());
 /// let answer_bad = parse_numbers.parse(&"x123a 1234".into());
