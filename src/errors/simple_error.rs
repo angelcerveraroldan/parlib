@@ -4,9 +4,9 @@ use crate::traits::Parser;
 #[derive(Debug, PartialEq)]
 /// Information about what error was reached during the parsing process
 pub struct ParsingError {
-    kind: ParsingErrorKind,
-    line: usize,
-    col: usize,
+    pub kind: ParsingErrorKind,
+    pub line: usize,
+    pub col: usize,
 }
 
 impl PartialOrd for ParsingError {
